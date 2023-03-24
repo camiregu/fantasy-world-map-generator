@@ -2,16 +2,23 @@
 #2023-mar-22
 import json
 import os
+import shutil
+
+#constants
+with open("global_config.json","r") as global_config:
+    SETTINGS: dict = json.load(global_config)
+    STORAGE_FILENAME = SETTINGS["storage_filename"]
 
 #functions
-def start_menu(storage_filename) -> str:
+def start_menu() -> str:
     print(instructions)
     command = ask_for_command()
-    result = commands[command](storage_filename)
+    result = commands[command]()
 
     while not isinstance(result,str): #by the time this function is done, a path name will have been produced
         print(instructions)
         command = ask_for_command()
+        result = commands[command]()
 
     return result
 
@@ -23,8 +30,8 @@ def ask_for_command() -> str:
     return command
 
 
-def load_map(storage_filename: str) -> str | None:
-    with open(storage_filename, "r") as storage:
+def load_map() -> str | None:
+    with open(STORAGE_FILENAME, "r") as storage:
         storage_dict: dict = json.load(storage)
 
     if len(storage_dict) == 0:
@@ -46,28 +53,28 @@ def load_map(storage_filename: str) -> str | None:
     return path #return the path listed in the json
 
 
-def create_map(storage_filename: str) -> tuple(str,str) | None:
+def create_map() -> str | None:
     map_name = remove_illegal_chars(input("What is your world called? "))
 
-    with open(storage_filename, "r") as storage:
+    with open(STORAGE_FILENAME, "r") as storage:
         storage_dict: dict = json.load(storage)
 
     if map_name in storage_dict.keys():
-        print("That map already exists")
+        print("That map already exists.")
         return
         
     os.mkdir(map_name)
     path = os.path.join(map_name, "")
     storage_dict.update({map_name: path})
 
-    with open(storage_filename, "w") as storage:
+    with open(STORAGE_FILENAME, "w") as storage:
         json.dump(storage_dict, storage)
 
     return path
 
 
-def delete_map(storage_filename: str) -> None:
-    with open(storage_filename, "r") as storage:
+def delete_map() -> None:
+    with open(STORAGE_FILENAME, "r") as storage:
         storage_dict: dict = json.load(storage)
 
     print("Here are your worlds:")
@@ -82,18 +89,19 @@ def delete_map(storage_filename: str) -> None:
     i = int(user_input)
 
     if input("Are you sure you want to delete " + world_names[i] + "? (Y/N) ").lower() == "y":
-        storage_dict.pop(world_names[i])
-        with open(storage_filename, "w") as storage:
-            json.dump(storage_dict, storage)
+        path = storage_dict.pop(world_names[i])
+        shutil.rmtree(path)
 
+        with open(STORAGE_FILENAME, "w") as storage:
+            json.dump(storage_dict, storage)
 
         print("Succesfully deleted world map.")
     else:
         print("Operation cancelled.")
 
 
-def rename_map(storage_filename: str) -> None:
-    with open(storage_filename, "r") as storage:
+def rename_map() -> None:
+    with open(STORAGE_FILENAME, "r") as storage:
         storage_dict: dict = json.load(storage)
 
     print("Here are your worlds:")
@@ -109,18 +117,20 @@ def rename_map(storage_filename: str) -> None:
 
     if input("Are you sure you want to rename " + world_names[world] + "? (Y/N) ").lower() == "y":
         new_name = remove_illegal_chars(input("What would you like to rename it to? "))
-        old_dict_item = storage_dict.pop(world_names[world])
-        storage_dict.update({new_name: old_dict_item})
-        with open(storage_filename, "w") as storage:
+        while new_name in storage_dict.keys():
+            print("That map already exists.")
+            new_name = remove_illegal_chars(input("What would you like to rename it to? "))
+    
+        old_path = storage_dict.pop(world_names[world])
+        os.rename(old_path,new_name)
+        new_path = os.path.join(new_name, "")
+        storage_dict.update({new_name: new_path})
+
+        with open(STORAGE_FILENAME, "w") as storage:
             json.dump(storage_dict, storage)
         print("Succesfully renamed " + world_names[world] + " to " + new_name + ".")
     else:
         print("Operation cancelled.")
-
-def quit_(_: str) -> None:
-    print("Goodbye!")
-    quit()
-
 
 def remove_illegal_chars(string: str) -> str:
     return string.replace("<","").replace(">","").replace(":","").replace('"',"").replace("/","").replace("\\","").replace("|","").replace("?","").replace("*","").strip(" .")
@@ -129,12 +139,13 @@ commands = {
     "l": load_map,
     "c": create_map,
     "d": delete_map,
-#    "r": rename_map,
-    "q": quit_
+    "r": rename_map,
+    "q": quit
 }
 
 instructions = """\nWelcome to Fantasy World Map Generator.
     L)oad a world map from your local files
     C)reate a new world map with custom settings
     D)elete an existing world map
+    R)ename an existing world map
     Q)uit the program"""

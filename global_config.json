@@ -1,0 +1,5 @@
+{
+    "storage_filename": "maps.json",
+    "map_config_filename": "config.json",
+    "tilemap_filename": "tilemap.json"
+}
