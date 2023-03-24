@@ -1,13 +1,9 @@
 #camiregu
 #2023-mar-22
+import config
 import json
 import os
 import shutil
-
-#constants
-with open("global_config.json","r") as global_config:
-    SETTINGS: dict = json.load(global_config)
-    STORAGE_FILENAME = SETTINGS["storage_filename"]
 
 #functions
 def start_menu() -> str:
@@ -31,7 +27,7 @@ def ask_for_command() -> str:
 
 
 def load_map() -> str | None:
-    with open(STORAGE_FILENAME, "r") as storage:
+    with open(config.STORAGE_FILENAME, "r") as storage:
         storage_dict: dict = json.load(storage)
 
     if len(storage_dict) == 0:
@@ -56,7 +52,7 @@ def load_map() -> str | None:
 def create_map() -> str | None:
     map_name = remove_illegal_chars(input("What is your world called? "))
 
-    with open(STORAGE_FILENAME, "r") as storage:
+    with open(config.STORAGE_FILENAME, "r") as storage:
         storage_dict: dict = json.load(storage)
 
     if map_name in storage_dict.keys():
@@ -67,14 +63,14 @@ def create_map() -> str | None:
     path = os.path.join(map_name, "")
     storage_dict.update({map_name: path})
 
-    with open(STORAGE_FILENAME, "w") as storage:
+    with open(config.STORAGE_FILENAME, "w") as storage:
         json.dump(storage_dict, storage)
 
     return path
 
 
 def delete_map() -> None:
-    with open(STORAGE_FILENAME, "r") as storage:
+    with open(config.STORAGE_FILENAME, "r") as storage:
         storage_dict: dict = json.load(storage)
 
     print("Here are your worlds:")
@@ -92,7 +88,7 @@ def delete_map() -> None:
         path = storage_dict.pop(world_names[i])
         shutil.rmtree(path)
 
-        with open(STORAGE_FILENAME, "w") as storage:
+        with open(config.STORAGE_FILENAME, "w") as storage:
             json.dump(storage_dict, storage)
 
         print("Succesfully deleted world map.")
@@ -101,7 +97,7 @@ def delete_map() -> None:
 
 
 def rename_map() -> None:
-    with open(STORAGE_FILENAME, "r") as storage:
+    with open(config.STORAGE_FILENAME, "r") as storage:
         storage_dict: dict = json.load(storage)
 
     print("Here are your worlds:")
@@ -126,7 +122,7 @@ def rename_map() -> None:
         new_path = os.path.join(new_name, "")
         storage_dict.update({new_name: new_path})
 
-        with open(STORAGE_FILENAME, "w") as storage:
+        with open(config.STORAGE_FILENAME, "w") as storage:
             json.dump(storage_dict, storage)
         print("Succesfully renamed " + world_names[world] + " to " + new_name + ".")
     else:
@@ -135,6 +131,7 @@ def rename_map() -> None:
 def remove_illegal_chars(string: str) -> str:
     return string.replace("<","").replace(">","").replace(":","").replace('"',"").replace("/","").replace("\\","").replace("|","").replace("?","").replace("*","").strip(" .")
 
+#command reference
 commands = {
     "l": load_map,
     "c": create_map,
@@ -143,6 +140,7 @@ commands = {
     "q": quit
 }
 
+#instructions text
 instructions = """\nWelcome to Fantasy World Map Generator.
     L)oad a world map from your local files
     C)reate a new world map with custom settings
