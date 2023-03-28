@@ -2,5 +2,10 @@
     "storage_filename": "maps.json",
     "local_config_filename": "config.json",
     "tilemap_filename": "tilemap.json",
-    "texture_directory": "textures"
+    "texture_directory": "textures",
+    "basis_vectors": [[1, -1, 0],[0, -1, 1],[-1, 0, 1]],
+
+    "default_local_config": {
+        "textures_directory": "textures"
+    }
 }

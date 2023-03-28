@@ -66,6 +66,9 @@ def create_map() -> str | None:
     with open(config.STORAGE_FILENAME, "w") as storage:
         json.dump(storage_dict, storage)
 
+    with open(path + config.TILEMAP_FILENAME, "w") as tilemap_file: #TODO review
+        json.dump({str((0,0,0))[1:-1]: "plains"}, tilemap_file)
+
     return path
 
 
