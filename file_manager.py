@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 
+
 #functions
 def start_menu() -> str:
     print(instructions)
@@ -134,6 +135,7 @@ def rename_map() -> None:
 def remove_illegal_chars(string: str) -> str:
     return string.replace("<","").replace(">","").replace(":","").replace('"',"").replace("/","").replace("\\","").replace("|","").replace("?","").replace("*","").strip(" .")
 
+
 #command reference
 commands = {
     "l": load_map,
@@ -142,6 +144,7 @@ commands = {
     "r": rename_map,
     "q": quit
 }
+
 
 #instructions text
 instructions = """\nWelcome to Fantasy World Map Generator.
