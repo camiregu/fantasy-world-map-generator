@@ -1,7 +1,8 @@
 #camiregu
 #2023-mar-22
 from file_manager import start_menu
-from cartographer.cartographer import open_map
+from cartographer.map_manager import open_map
+
 
 #main
 while True:
