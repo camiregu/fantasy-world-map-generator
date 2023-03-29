@@ -11,10 +11,12 @@ class Tile(pg.sprite.Sprite):
         self.image = UNEXPLORED_IMAGE
         self.coordinates = coordinates
         tiles.update({self.coordinates: self})
+        return
         
     def update_terrain(self, terrain: str):
         self.terrain = terrain
         self.image = TERRAIN_IMAGES[terrain]
+        return
 
     def set_explored(self, explored: bool):
         if explored:
@@ -23,8 +25,9 @@ class Tile(pg.sprite.Sprite):
         else:
             unfilled.add(self)
             filled.remove(self)
+        return
 
-    def mouse_is_over(self):
+    def mouse_is_over(self) -> bool:
         mouse_pos = pg.mouse.get_pos()
         return self.rect.collidepoint(mouse_pos)
     
@@ -33,13 +36,10 @@ class Tile(pg.sprite.Sprite):
 #functions
 def start_tiles():
     #constants
-    global TERRAIN_IMAGES
-    global UNEXPLORED_IMAGE
+    global TERRAIN_IMAGES, UNEXPLORED_IMAGE
 
     #global variables
-    global unfilled
-    global filled
-    global tiles
+    global unfilled, filled, tiles
 
     TERRAIN_IMAGES = {}
     for terrain_name, image_path in config.TERRAINS.items():
@@ -49,6 +49,7 @@ def start_tiles():
     unfilled = pg.sprite.Group()    
     filled = pg.sprite.Group()
     tiles = {}
+    return
 
 
 def download_map(tilemap: dict):
@@ -56,6 +57,7 @@ def download_map(tilemap: dict):
         tile = Tile(coordinates)
         tile.update_terrain(terrain)
         tile.set_explored(True)
+    return
 
 
 def upload_map() -> dict:

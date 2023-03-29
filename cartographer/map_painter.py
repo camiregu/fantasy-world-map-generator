@@ -8,14 +8,12 @@ import numpy as np
 
 
 #functions
-def start_map():
+def start_map(draw_surface: pg.Surface):
     #constants
-    global BLIT_OFFSET
-    global RECT_SIZE
-    global AXIS_VECTORS
-    global DISPLAY
-    global ORIGIN
+    global SURFACE, ORIGIN, BLIT_OFFSET, RECT_SIZE, AXIS_VECTORS
 
+    SURFACE = draw_surface
+    ORIGIN = np.array((SURFACE.get_width() // 2, SURFACE.get_height() // 2))
     BLIT_OFFSET = ((-2 / np.sqrt(3)) * config.INCIRCLE_RADIUS)
     RECT_SIZE = -2*BLIT_OFFSET, -2*BLIT_OFFSET
     AXIS_VECTORS = (
@@ -23,8 +21,6 @@ def start_map():
         np.array((-1/2, np.sqrt(3)/2)) * (2/np.sqrt(3)) * config.INCIRCLE_RADIUS,
         np.array((1,0)) * (2/np.sqrt(3)) * config.INCIRCLE_RADIUS
     )
-    DISPLAY = pg.display.set_mode((0,0),pg.WINDOWMAXIMIZED)
-    ORIGIN = np.array((DISPLAY.get_width() // 2, DISPLAY.get_height() // 2))
 
     #draw loaded map
     for tile in tm.tiles.values():
@@ -32,16 +28,18 @@ def start_map():
     set_tiles = tuple(tm.tiles.values())
     for tile in set_tiles:
         surround_tile(tile)
-    tm.filled.draw(DISPLAY)
-    tm.unfilled.draw(DISPLAY)
+    tm.filled.draw(SURFACE)
+    tm.unfilled.draw(SURFACE)
+    return
 
 
 def fill_tile(tile: tm.Tile, terrain: str):
     tile.update_terrain(terrain)
     tile.set_explored(True) 
     surround_tile(tile)
-    tm.filled.draw(DISPLAY)
-    tm.unfilled.draw(DISPLAY)
+    tm.filled.draw(SURFACE)
+    tm.unfilled.draw(SURFACE)
+    return
 
 
 def surround_tile(tile: tm.Tile):
@@ -54,6 +52,7 @@ def surround_tile(tile: tm.Tile):
         if (pos_2 not in list(tm.tiles.keys())):
             new_tile = tm.Tile(pos_2)
             new_tile.rect = pg.Rect(get_screen_pos(new_tile.coordinates) + BLIT_OFFSET, RECT_SIZE)
+    return
 
 
 def get_screen_pos(coordinates: tuple[int,int,int]) -> np.ndarray:

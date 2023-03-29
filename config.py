@@ -12,9 +12,7 @@ with open("global_config.json","r") as global_config:
     BASIS_VECTORS: list[list[int]] = GLOBAL_SETTINGS["basis_vectors"]
 
 def load_local_settings(local_path: str):
-    global TERRAINS
-    global INCIRCLE_RADIUS
-    global UNEXPLORED_IMAGE_PATH
+    global TERRAINS, INCIRCLE_RADIUS, UNEXPLORED_IMAGE_PATH
 
     INCIRCLE_RADIUS = 100
     TERRAINS = {
@@ -33,3 +31,4 @@ def load_local_settings(local_path: str):
     #    LOCAL_SETTINGS: dict = json.load(local_config)
     #    TERRAINS: dict = LOCAL_SETTINGS["terrains"]
     #    INCIRCLE_RADIUS: int = LOCAL_SETTINGS["incircle_radius"]
+    return

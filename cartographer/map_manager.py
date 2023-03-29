@@ -2,8 +2,9 @@
 #2023-mar-27
 import config
 import cartographer.tile_manager as tm
-import cartographer.event_processor as ep
+import cartographer.display_controller as dc
 import cartographer.map_painter as mp
+import cartographer.event_processor as ep
 
 import os
 import json
@@ -19,16 +20,18 @@ def open_map(local_directory: str):
 
     tm.start_tiles()
     tm.download_map(map)
-    mp.start_map()
+    dc.start_display()
+    mp.start_map(dc.draw_surface)
 
     done = False
     while not done:
         done = ep.process_user_input()
     map = tm.upload_map()
     save_map(map,tilemap_path)
+    return
 
 
-def load_map(file_path: str):
+def load_map(file_path: str) -> dict:
     with open(file_path,"r") as tilemap_file:
         tilemap = json.load(tilemap_file)
     tiles = {}
@@ -37,9 +40,10 @@ def load_map(file_path: str):
     return tiles
 
 
-def save_map(tiles: dict, file_path) -> None:
+def save_map(tiles: dict, file_path):
     tilemap = {}
     for key, value in tiles.items():
         tilemap.update({str(key)[1:-1]: value})
     with open(file_path,"w") as tilemap_file:
         json.dump(tilemap, tilemap_file)
+    return
