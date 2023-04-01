@@ -24,6 +24,7 @@ def open_map(local_directory: str):
     mp.start_map(dc.draw_surface)
 
     done = False
+    dc.draw_screen()
     while not done:
         done = ep.process_user_input()
     map = tm.upload_map()

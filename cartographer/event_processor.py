@@ -18,6 +18,7 @@ def process_user_input() -> bool: #move
             
             if event.key == pg.K_f:
                 dc.toggle_fullscreen()
+                dc.draw_screen()
             
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -26,9 +27,10 @@ def process_user_input() -> bool: #move
                     if tile.mouse_is_over():
                         terrain = tg.assign_terrain(tile.coordinates)
                         mp.fill_tile(tile, terrain)
+                dc.draw_screen()
 
         elif event.type == pg.MOUSEWHEEL:
-            dc.change_scale(event.y)
+            dc.scale_display(event.y)
+            dc.draw_screen()
     
-    dc.draw_screen()
     return False

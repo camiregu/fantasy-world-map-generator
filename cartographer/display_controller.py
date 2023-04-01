@@ -1,22 +1,25 @@
 #camiregu
 #2023-mar-28
-import config
+import numpy as np
 import pygame as pg
 
 
 #functions
 def start_display():
-    global max_display, default_display, scale, fullscreen, draw_surface, scale_surface, display_surface
+    global max_display, default_display, scale, fullscreen, draw_surface, scale_surface, display_surface, scale_pos, zoom_offset
 
     pg.init()   
-    max_display = pg.display.Info().current_w, pg.display.Info().current_h
-    default_display = max_display[0] / 2, max_display[1] / 2
+    max_display = np.array((pg.display.Info().current_w, pg.display.Info().current_h))
+    default_display = max_display / 2
     scale = 1
     fullscreen = False
 
-    draw_surface = pg.Surface((max_display[0] * 10, max_display[1] * 10))
+    draw_surface = pg.Surface(max_display * 10)
     scale_surface = pg.Surface(default_display)
     display_surface = pg.display.set_mode(default_display)
+
+    scale_pos = np.array(display_surface.get_size()) / 2
+    zoom_offset = np.array((0.0, 0.0))
     return
 
 
@@ -39,13 +42,12 @@ def set_display():
 
 def get_resolution():
     if fullscreen:
-        return max_display[0] * scale, max_display[1] * scale
+        return max_display * scale
     else:
-        return default_display[0] * scale, default_display[1] * scale
+        return default_display * scale
 
 
 def get_blit_position():
-    zoom_offset = -display_surface.get_width() / 2 * (scale - 1), -display_surface.get_height() / 2 * (scale - 1), 
     return zoom_offset
 
 
@@ -56,11 +58,15 @@ def toggle_fullscreen():
     return
 
 
-def change_scale(increment: int):
-    global scale
-    if (increment > 0 and scale * 2 <= 16):
-        scale *= 2
-    elif increment < 0:
-        scale *= 1/2
+def scale_display(increment: int):
+    global scale, scale_pos, zoom_offset
+    increment = increment / abs(increment) # normalize increment for easier math
+    new_scale = scale * (2 ** increment) # half or double scale
+    if new_scale <= 16:
+        scale = new_scale    
+        scale_pos = np.array(pg.mouse.get_pos()) 
+        zoom_offset = zoom_offset - increment * (2 / (3 - increment)) * (scale_pos - zoom_offset)
+        print(f"scale pos: {scale_pos}")
+        print(f"new zoom offset: {zoom_offset}")
     print(scale)
     set_display()

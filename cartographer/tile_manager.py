@@ -32,7 +32,6 @@ class Tile(pg.sprite.Sprite):
         return self.rect.collidepoint(mouse_pos)
     
 
-
 #functions
 def start_tiles():
     #constants
