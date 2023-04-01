@@ -10,6 +10,8 @@ import numpy as np
 
 # functions
 def process_user_input() -> bool:
+    """Read user input this frame and call appropriate functions."""
+    
     events = pg.event.get()
     for event in events:
         if event.type == pg.KEYDOWN:

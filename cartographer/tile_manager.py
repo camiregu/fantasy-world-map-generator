@@ -11,6 +11,7 @@ class Tile(pg.sprite.Sprite):
         """Instantiate a Tile object."""
         super().__init__(unexplored)
         self.image = UNEXPLORED_IMAGE
+        self.mask = pg.mask.from_surface(self.image)
         self.coordinates = coordinates
         tiles.update({self.coordinates: self})
         return
@@ -19,6 +20,7 @@ class Tile(pg.sprite.Sprite):
         """Update a Tile's terrain and its associated image."""
         self.terrain = terrain
         self.image = TERRAIN_IMAGES[terrain]
+        self.mask = pg.mask.from_surface(self.image)
         return
 
     def set_explored(self, is_explored: bool):
@@ -32,8 +34,9 @@ class Tile(pg.sprite.Sprite):
         return
 
     def mouse_is_over(self, position) -> bool:
-        """Return True if position collides with Tile.rect."""
-        return self.rect.collidepoint(position)
+        """Return True if position collides with Tile sprite"""
+        position_in_mask = position[0] - self.rect.x, position[1] - self.rect.y
+        return self.rect.collidepoint(position) and self.mask.get_at(position_in_mask)
     
     def is_isolated(self) -> bool:
         """Return True if there are no explored Tiles adjacent to this one and this one is not explored."""
@@ -56,6 +59,7 @@ class Tile(pg.sprite.Sprite):
         self.set_explored(False)
         self.terrain = None
         self.image = UNEXPLORED_IMAGE
+        self.mask = pg.mask.from_surface(self.image)
         for vector in config.BASIS_VECTORS:
             tile_1 = tiles[tuple(self.coordinates + np.array(vector))]
             if tile_1.is_isolated():
@@ -71,7 +75,6 @@ class Tile(pg.sprite.Sprite):
             tiles.pop(self.coordinates)
             unexplored.remove(self)
             del self
-        
     
 
 # functions
