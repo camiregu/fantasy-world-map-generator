@@ -28,17 +28,17 @@ def start_map(draw_surface: pg.Surface):
     set_tiles = tuple(tm.tiles.values())
     for tile in set_tiles:
         surround_tile(tile)
-    tm.filled.draw(SURFACE)
-    tm.unfilled.draw(SURFACE)
+    tm.explored.draw(SURFACE)
+    tm.unexplored.draw(SURFACE)
     return
 
 
-def fill_tile(tile: tm.Tile, terrain: str):
-    tile.update_terrain(terrain)
-    tile.set_explored(True) 
-    surround_tile(tile)
-    tm.filled.draw(SURFACE)
-    tm.unfilled.draw(SURFACE)
+def update_tile(tile: tm.Tile):
+    if tm.explored in tile.groups():
+        surround_tile(tile)
+    SURFACE.fill((0,0,0))
+    tm.explored.draw(SURFACE)
+    tm.unexplored.draw(SURFACE)
     return
 
 
