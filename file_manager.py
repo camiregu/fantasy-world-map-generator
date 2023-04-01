@@ -1,11 +1,12 @@
-#camiregu
-#2023-mar-22
+# camiregu
+# 2023-mar-22
 import config
 import json
 import os
 import shutil
 
-#functions
+
+# functions
 def start_menu() -> str:
     print(instructions)
     command = ask_for_command()
@@ -134,7 +135,8 @@ def rename_map() -> None:
 def remove_illegal_chars(string: str) -> str:
     return string.replace("<","").replace(">","").replace(":","").replace('"',"").replace("/","").replace("\\","").replace("|","").replace("?","").replace("*","").strip(" .")
 
-#command reference
+
+# command reference
 commands = {
     "l": load_map,
     "c": create_map,
@@ -143,7 +145,8 @@ commands = {
     "q": quit
 }
 
-#instructions text
+
+# instructions text
 instructions = """\nWelcome to Fantasy World Map Generator.
     L)oad a world map from your local files
     C)reate a new world map with custom settings
