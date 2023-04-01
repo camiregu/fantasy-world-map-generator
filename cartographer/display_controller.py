@@ -48,6 +48,11 @@ def scale_display(increment: int):
     set_display()
 
 
+def pan_display(motion: tuple[int, int]):
+    global pan_offset
+    pan_offset += np.array(motion) / scale
+
+
 def set_display():
     global display_surface, scale_surface, draw_surface
     scale_surface = pg.Surface(get_resolution())
@@ -66,4 +71,4 @@ def get_resolution():
 
 
 def get_blit_position():
-    return zoom_offset + pan_offset
+    return zoom_offset + scale * pan_offset

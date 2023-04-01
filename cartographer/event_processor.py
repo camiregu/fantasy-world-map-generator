@@ -11,7 +11,7 @@ import numpy as np
 # functions
 def process_user_input() -> bool:
     """Read user input this frame and call appropriate functions."""
-    
+
     events = pg.event.get()
     for event in events:
         if event.type == pg.KEYDOWN:
@@ -46,5 +46,10 @@ def process_user_input() -> bool:
         elif event.type == pg.MOUSEWHEEL:
             dc.scale_display(event.y)
             dc.draw_screen()
+
+        elif event.type == pg.MOUSEMOTION:
+            if event.buttons[1]:
+                dc.pan_display(event.rel)
+                dc.draw_screen()
     
     return False
