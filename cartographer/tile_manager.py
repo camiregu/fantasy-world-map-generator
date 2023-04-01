@@ -1,10 +1,10 @@
-#camiregu
-#2023-mar-28
+# camiregu
+# 2023-mar-28
 import config
 import pygame as pg
 
 
-#tile class
+# tile class
 class Tile(pg.sprite.Sprite):
     def __init__(self, coordinates: tuple[int,int,int]) -> None:
         super().__init__(unfilled)
@@ -27,17 +27,16 @@ class Tile(pg.sprite.Sprite):
             filled.remove(self)
         return
 
-    def mouse_is_over(self) -> bool:
-        mouse_pos = pg.mouse.get_pos()
-        return self.rect.collidepoint(mouse_pos)
+    def mouse_is_over(self, position) -> bool:
+        return self.rect.collidepoint(position)
     
 
-#functions
+# functions
 def start_tiles():
-    #constants
+    # constants
     global TERRAIN_IMAGES, UNEXPLORED_IMAGE
 
-    #global variables
+    # global variables
     global unfilled, filled, tiles
 
     TERRAIN_IMAGES = {}

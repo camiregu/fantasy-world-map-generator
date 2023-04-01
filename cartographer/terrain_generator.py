@@ -1,5 +1,5 @@
-#camiregu
-#2023-mar-27
+# camiregu
+# 2023-mar-27
 import config
 import cartographer.tile_manager as tm
 
@@ -7,10 +7,10 @@ import random
 import numpy as np
 
 
-#import rules here
+# import rules here
 
 
-#functions
+# functions
 def assign_terrain(coordinates: tuple) -> str: #move
     probability_list = []
     for vector in config.BASIS_VECTORS:

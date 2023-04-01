@@ -1,5 +1,5 @@
-#camiregu
-#2023-mar-27
+# camiregu
+# 2023-mar-27
 import config
 import cartographer.tile_manager as tm
 import cartographer.display_controller as dc
@@ -10,7 +10,7 @@ import os
 import json
 
 
-#functions
+# functions
 def open_map(local_directory: str):
     tilemap_path = os.path.join(local_directory,config.TILEMAP_FILENAME)
     local_config_path = os.path.join(local_directory,config.LOCAL_CONFIG_FILENAME)

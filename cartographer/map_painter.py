@@ -1,5 +1,5 @@
-#camiregu
-#2023-mar-24
+# camiregu
+# 2023-mar-24
 import config
 import cartographer.tile_manager as tm
 
@@ -7,9 +7,9 @@ import pygame as pg
 import numpy as np
 
 
-#functions
+# functions
 def start_map(draw_surface: pg.Surface):
-    #constants
+    # constants
     global SURFACE, ORIGIN, BLIT_OFFSET, RECT_SIZE, AXIS_VECTORS
 
     SURFACE = draw_surface
@@ -22,7 +22,7 @@ def start_map(draw_surface: pg.Surface):
         np.array((1,0)) * (2/np.sqrt(3)) * config.INCIRCLE_RADIUS
     )
 
-    #draw loaded map
+    # draw loaded map
     for tile in tm.tiles.values():
         tile.rect = pg.Rect(get_screen_pos(tile.coordinates) + BLIT_OFFSET, RECT_SIZE)
     set_tiles = tuple(tm.tiles.values())
