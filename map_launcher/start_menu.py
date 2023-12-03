@@ -8,7 +8,7 @@ from tkinter import ttk
 
 # functions
 def start_menu():
-    map_list = file_manager.get_maps()
+    map_list = file_manager.get_map_names()
 
     window = tk.Tk()
     window.title('Map Selection')

@@ -33,5 +33,6 @@ def edit_map(map: str, settings: dict) -> None:
     #update local config
     pass
 
+
 def remove_illegal_chars(string: str) -> str:
     return string.replace("<","").replace(">","").replace(":","").replace('"',"").replace("/","").replace("\\","").replace("|","").replace("?","").replace("*","").strip(" .")
