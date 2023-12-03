@@ -1,0 +1,62 @@
+{
+    "incircle_radius": 100,
+    "unexplored_image": "textures\\unexplored.png",
+    "unexplored_adjacencies": {
+        "arctic": 1,
+        "desert": 1,
+        "forest": 1,
+        "hills": 1,
+        "lake": 1,
+        "mountains": 1,
+        "ocean": 1,
+        "plains": 1,
+        "swamp": 1
+    },
+    "terrains": {
+        "arctic": {
+            "image": "textures\\arctic.png",
+            "adjacency_bonuses": {"arctic": 15},
+            "adjacency_vetoes": ["desert"]
+        },
+        "desert": {
+            "image": "textures\\desert.png",
+            "adjacency_bonuses": {"desert": 15},
+            "adjacency_vetoes": ["swamp", "arctic",  "ocean"]
+        },
+        "forest": {
+            "image": "textures\\forest.png",
+            "adjacency_bonuses": {"forest": 15},
+            "adjacency_vetoes": []
+        },
+        "hills": {
+            "image": "textures\\hills.png",
+            "adjacency_bonuses": {"hills": 15},
+            "adjacency_vetoes": []
+        },
+        "lake": {
+            "image": "textures\\lake.png",
+            "adjacency_bonuses": {"lake": 15},
+            "adjacency_vetoes": []
+        },
+        "mountains": {
+            "image": "textures\\mountains.png",
+            "adjacency_bonuses": {"mountains": 15},
+            "adjacency_vetoes": ["ocean", "plains"]
+        },
+        "ocean": {
+            "image": "textures\\ocean.png",
+            "adjacency_bonuses": {"ocean": 15},
+            "adjacency_vetoes": ["desert", "mountains"]
+        },
+        "plains": {
+            "image": "textures\\plains.png",
+            "adjacency_bonuses": {"plains": 15},
+            "adjacency_vetoes": ["mountains"]
+        },
+        "swamp": {
+            "image": "textures\\swamp.png",
+            "adjacency_bonuses": {"swamp": 15},
+            "adjacency_vetoes": ["desert"]
+        }
+    }
+}

@@ -1,112 +1,192 @@
 # camiregu
 # 2023-mar-28
-import config
+from config import Config
+from cartographer.tile import Tile
+
 import pygame as pg
 import numpy as np
+import random
+
+class TileManager():
+    """Singleton class holds data for and modifies all tiles, explored and unexplored, currently on the board."""
+    unexplored: 'pg.sprite.Group[Tile]'
+    explored: 'pg.sprite.Group[Tile]'
+    tiles: 'dict[tuple[int, int, int], Tile]'
+
+    surface: pg.Surface
+    origin: 'tuple[int, int]'
+    blit_offset: float
+    rect_size: 'tuple[float, float]'
+    axis_vectors: 'tuple[tuple[float, float], tuple[float, float], tuple[float, float]]'
+
+    loading: bool
 
 
-# tile class
-class Tile(pg.sprite.Sprite):
-    def __init__(self, coordinates: tuple[int,int,int]) -> None:
-        """Instantiate a Tile object."""
-        super().__init__(unexplored)
-        self.image = UNEXPLORED_IMAGE
-        self.mask = pg.mask.from_surface(self.image)
-        self.coordinates = coordinates
-        tiles.update({self.coordinates: self})
-        return
-        
-    def update_terrain(self, terrain: str):
-        """Update a Tile's terrain and its associated image."""
-        self.terrain = terrain
-        self.image = TERRAIN_IMAGES[terrain]
-        self.mask = pg.mask.from_surface(self.image)
-        return
+    @classmethod
+    def start(cls, surface: pg.Surface):
+        """Reset all class variables."""
+        cls.unexplored = pg.sprite.Group()    
+        cls.explored = pg.sprite.Group()
+        cls.tiles = {}
 
-    def set_explored(self, is_explored: bool):
-        """Move the Tile to the appropriate sprite group."""
-        if is_explored:
-            unexplored.remove(self)
-            explored.add(self)
-        else:
-            unexplored.add(self)
-            explored.remove(self)
-        return
+        cls.surface = surface
+        cls.origin = np.array((cls.surface.get_width() // 2, cls.surface.get_height() // 2))
+        cls.blit_offset = ((-2 / np.sqrt(3)) * Config.INCIRCLE_RADIUS)
+        cls.rect_size = -2*cls.blit_offset, -2*cls.blit_offset
+        cls.axis_vectors = (
+            np.array((-1/2, -np.sqrt(3)/2)) * (2/np.sqrt(3)) * Config.INCIRCLE_RADIUS,
+            np.array((-1/2, np.sqrt(3)/2)) * (2/np.sqrt(3)) * Config.INCIRCLE_RADIUS,
+            np.array((1,0)) * (2/np.sqrt(3)) * Config.INCIRCLE_RADIUS
+        )
 
-    def mouse_is_over(self, position) -> bool:
-        """Return True if position collides with Tile sprite"""
-        position_in_mask = position[0] - self.rect.x, position[1] - self.rect.y
-        return self.rect.collidepoint(position) and self.mask.get_at(position_in_mask)
+
+    @classmethod
+    def load(cls, tilemap: dict):
+        """Load a set of tiles onto the board."""
+        cls.loading = True
+        for coordinates, terrain in tilemap.items():
+            if coordinates in cls.tiles:
+                tile = cls.tiles[coordinates]
+            else:
+                tile = cls.create_tile(coordinates)
+            cls.update_terrain(tile, terrain)
+        cls.explored.draw(cls.surface)
+        cls.unexplored.draw(cls.surface)
+        cls.loading = False
+
+
+    @classmethod
+    def save(cls) -> dict:
+        """Create a dict object containing explored tile data."""
+        tilemap = {}
+        for tile in cls.tiles.values():
+            if cls.explored in tile.groups():
+                tilemap.update({tile.coordinates: tile.terrain})
+        return tilemap
     
-    def is_isolated(self) -> bool:
-        """Return True if there are no explored Tiles adjacent to this one and this one is not explored."""
-        if explored in self.groups():
+
+    @classmethod
+    def create_tile(cls, coordinates: tuple[int, int, int]) -> Tile:
+        """Instantiate a Tile object at coordinates and add it to the appropriate groups. Create neighbours if necessary. Return new Tile object."""
+        tile = Tile(coordinates)
+        cls.tiles.update({tile.coordinates: tile})
+        cls.unexplored.add(tile)
+        tile.rect = pg.Rect(cls.get_screen_pos(tile.coordinates) + cls.blit_offset, cls.rect_size)
+        tile.mask = pg.mask.from_surface(tile.image)
+
+        return tile
+
+
+    @classmethod 
+    def destroy_tile(cls, tile: Tile):
+        """Delete tile and neighbours if necessary. Recreate tile if necessary."""
+        cls.tiles.pop(tile.coordinates)
+        tile.kill()
+
+        if not cls.is_isolated(tile):
+            cls.create_tile(tile.coordinates)
+
+        for vector in Config.BASIS_VECTORS:
+            tile_1 = cls.tiles[tuple(tile.coordinates + np.array(vector))]
+            if cls.is_isolated(tile_1):
+                cls.tiles.pop(tile_1.coordinates)
+                tile_1.kill()
+            tile_2 = cls.tiles[tuple(tile.coordinates - np.array(vector))]
+            if cls.is_isolated(tile_2):
+                cls.tiles.pop(tile_2.coordinates)
+                tile_2.kill()
+
+        cls.surface.fill((0,0,0))
+        cls.explored.draw(cls.surface)
+        cls.unexplored.draw(cls.surface)
+        
+
+    @classmethod
+    def update_terrain(cls, tile: Tile, terrain: str):
+        """Update a Tile's terrain and adjacencies."""
+        if tile in cls.unexplored:
+            cls.unexplored.remove(tile)
+            cls.explored.add(tile)
+
+        tile.terrain = terrain 
+        tile.adjacency_bonuses = Config.TERRAINS[terrain]["adjacency_bonuses"]
+        tile.adjacency_vetoes = Config.TERRAINS[terrain]["adjacency_vetoes"]
+        tile.image = pg.image.load(Config.TERRAINS[terrain]["image"])
+        tile.rect = pg.Rect(cls.get_screen_pos(tile.coordinates) + cls.blit_offset, cls.rect_size)
+        tile.mask = pg.mask.from_surface(tile.image)
+
+        for vector in Config.BASIS_VECTORS:
+            pos_1 = tuple(tile.coordinates + np.array(vector))
+            if pos_1 not in cls.tiles:
+                cls.create_tile(pos_1)
+            pos_2 = tuple(tile.coordinates - np.array(vector))
+            if pos_2 not in cls.tiles:
+                cls.create_tile(pos_2)
+        
+        if not cls.loading:
+            cls.surface.fill((0,0,0))
+            cls.explored.draw(cls.surface)
+            cls.unexplored.draw(cls.surface)
+    
+
+    @classmethod
+    def find_tile_at(cls, position) -> Tile:
+        """If mouse is over a tile, return that tile. Otherwise return None."""
+        for tile in cls.tiles.values():
+            if tile.rect.collidepoint(position):
+                position_in_mask = position[0] - tile.rect.x, position[1] - tile.rect.y
+                if tile.mask.get_at(position_in_mask):
+                    return tile
+                
+    
+    @classmethod
+    def get_screen_pos(cls, coordinates: tuple[int,int,int]) -> np.ndarray:
+        return coordinates[0] * cls.axis_vectors[0] + coordinates[1] * cls.axis_vectors[1] + coordinates[2] * cls.axis_vectors[2] + cls.origin
+
+
+    @classmethod
+    def is_isolated(cls, tile: Tile) -> bool:
+        """Return True if there are no explored Tiles adjacent to tile and tile is not explored."""
+        if cls.explored in tile.groups():
             return False
         
-        isolated = True
-        for vector in config.BASIS_VECTORS:
-            pos_1 = tuple(self.coordinates + np.array(vector))
-            if (pos_1 in tiles and explored in tiles[pos_1].groups()):
-                isolated = False
-            pos_2 = tuple(self.coordinates - np.array(vector))
-            if (pos_2 in tiles and explored in tiles[pos_2].groups()):
-                isolated = False
+        for vector in Config.BASIS_VECTORS:
+            pos_1 = tuple(tile.coordinates + np.array(vector))
+            if (pos_1 in cls.tiles and cls.tiles[pos_1] in cls.explored):
+                return False
+            pos_2 = tuple(tile.coordinates - np.array(vector))
+            if (pos_2 in cls.tiles and cls.tiles[pos_2] in cls.explored):
+                return False
 
-        return isolated
-
-    def reset(self):
-        """Reset the Tile as if it was never explored."""
-        self.set_explored(False)
-        self.terrain = None
-        self.image = UNEXPLORED_IMAGE
-        self.mask = pg.mask.from_surface(self.image)
-        for vector in config.BASIS_VECTORS:
-            tile_1 = tiles[tuple(self.coordinates + np.array(vector))]
-            if tile_1.is_isolated():
-                tiles.pop(tile_1.coordinates)
-                unexplored.remove(tile_1)
-                del tile_1
-            tile_2 = tiles[tuple(self.coordinates - np.array(vector))]
-            if tile_2.is_isolated():
-                tiles.pop(tile_2.coordinates)
-                unexplored.remove(tile_2)
-                del tile_2
-        if self.is_isolated():
-            tiles.pop(self.coordinates)
-            unexplored.remove(self)
-            del self
+        return True
     
 
-# functions
-def start_tiles():
-    # constants
-    global TERRAIN_IMAGES, UNEXPLORED_IMAGE
+    @classmethod
+    def randomize_terrain(cls, tile: Tile):
+        """Randomly select a new terrain type for tile with weights based on adjacent tiles."""
+        terrain_bag = []
+        vetoes = []
 
-    # global variables
-    global unexplored, explored, tiles
+        for vector in Config.BASIS_VECTORS:
+            pos_1 = tuple(tile.coordinates + np.array(vector))
+            if pos_1 in cls.tiles:
+                vetoes += cls.tiles[pos_1].adjacency_vetoes
+            pos_2 = tuple(tile.coordinates - np.array(vector))
+            if pos_2 in cls.tiles:
+                vetoes += cls.tiles[pos_2].adjacency_vetoes
 
-    TERRAIN_IMAGES = {}
-    for terrain_name, image_path in config.TERRAINS.items():
-        TERRAIN_IMAGES.update({terrain_name: pg.image.load(image_path)})
-    UNEXPLORED_IMAGE = pg.image.load(config.UNEXPLORED_IMAGE_PATH)
+        for vector in Config.BASIS_VECTORS:
 
-    unexplored = pg.sprite.Group()    
-    explored = pg.sprite.Group()
-    tiles = {}
-    return
+            pos_1 = tuple(tile.coordinates + np.array(vector))
+            if pos_1 in cls.tiles:
+                for terrain, weight in cls.tiles[pos_1].adjacency_bonuses.items():
+                    if terrain not in vetoes:
+                        terrain_bag += [terrain] * weight
 
-
-def download_map(tilemap: dict):
-    for coordinates, terrain in tilemap.items():
-        tile = Tile(coordinates)
-        tile.update_terrain(terrain)
-        tile.set_explored(True)
-    return
-
-
-def upload_map() -> dict:
-    tilemap = {}
-    for tile in tiles.values():
-        if explored in tile.groups():
-            tilemap.update({tile.coordinates: tile.terrain})
-    return tilemap
+            pos_2 = tuple(tile.coordinates - np.array(vector))
+            if pos_2 in cls.tiles:
+                for terrain, weight in cls.tiles[pos_2].adjacency_bonuses.items():
+                    if terrain not in vetoes:
+                        terrain_bag += [terrain] * weight
+        
+        cls.update_terrain(tile, terrain_bag[random.randrange(len(terrain_bag))])

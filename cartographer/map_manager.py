@@ -1,9 +1,8 @@
 # camiregu
 # 2023-mar-27
-import config
-import cartographer.tile_manager as tm
-import cartographer.display_controller as dc
-import cartographer.map_painter as mp
+from config import Config
+from cartographer.tile_manager import TileManager
+from cartographer.display_controller import DisplayController
 import cartographer.event_processor as ep
 
 import os
@@ -12,27 +11,25 @@ import json
 
 # functions
 def open_map(local_directory: str):
-    tilemap_path = os.path.join(local_directory,config.TILEMAP_FILENAME)
-    local_config_path = os.path.join(local_directory,config.LOCAL_CONFIG_FILENAME)
+    tilemap_path = os.path.join(Config.MAPS_DIRECTORY, local_directory, Config.TILEMAP_FILENAME)
+    local_config_path = os.path.join(Config.MAPS_DIRECTORY, local_directory, Config.LOCAL_CONFIG_FILENAME)
 
-    config.load_local_settings(local_config_path)
-    map = load_map(tilemap_path)
+    Config.load_local_settings(local_config_path)
+    tilemap = download_map(tilemap_path)
 
-    tm.start_tiles()
-    tm.download_map(map)
-    dc.start_display()
-    mp.start_map(dc.draw_surface)
-
+    DisplayController.start()
+    TileManager.start(DisplayController.draw_surface)
+    TileManager.load(tilemap)
+    
     done = False
-    dc.draw_screen()
+    DisplayController.draw_screen()
     while not done:
         done = ep.process_user_input()
-    map = tm.upload_map()
-    save_map(map,tilemap_path)
-    return
+    tilemap = TileManager.save()
+    upload_map(tilemap,tilemap_path)
 
 
-def load_map(file_path: str) -> dict:
+def download_map(file_path: str) -> dict:
     with open(file_path,"r") as tilemap_file:
         tilemap = json.load(tilemap_file)
     tiles = {}
@@ -41,10 +38,9 @@ def load_map(file_path: str) -> dict:
     return tiles
 
 
-def save_map(tiles: dict, file_path):
+def upload_map(tiles: dict, file_path):
     tilemap = {}
     for key, value in tiles.items():
         tilemap.update({str(key)[1:-1]: value})
     with open(file_path,"w") as tilemap_file:
         json.dump(tilemap, tilemap_file)
-    return

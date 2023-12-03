@@ -1,34 +1,38 @@
 # camiregu
 # 2023-mar-24
 import json
-import os
 
-with open("global_config.json","r") as global_config:
-    GLOBAL_SETTINGS: dict = json.load(global_config)
-    STORAGE_FILENAME: str = GLOBAL_SETTINGS["storage_filename"]
-    LOCAL_CONFIG_FILENAME: str = GLOBAL_SETTINGS["local_config_filename"]
-    TILEMAP_FILENAME: str = GLOBAL_SETTINGS["tilemap_filename"]
-    TEXTURE_DIRECTORY: str = GLOBAL_SETTINGS["texture_directory"]
-    BASIS_VECTORS: list[list[int]] = GLOBAL_SETTINGS["basis_vectors"]
+class Config():
+    """Holds configuration settings for various files."""
+    MAPS_DIRECTORY: str
+    STORAGE_FILENAME: str
+    LOCAL_CONFIG_FILENAME: str
+    TEXTURE_DIRECTORY: str
+    BASIS_VECTORS: list[list[int]]
+    INCIRCLE_RADIUS: int
+    UNEXPLORED_IMAGE_PATH: str
+    TERRAINS: dict[dict]
 
-def load_local_settings(local_path: str):
-    global TERRAINS, INCIRCLE_RADIUS, UNEXPLORED_IMAGE_PATH
+    @classmethod
+    def load_global_settings(cls):
+        with open("global_config.json","r") as global_config:
+            # convert json to dict
+            config: dict = json.load(global_config)
+            # extract config
+            cls.MAPS_DIRECTORY = config["maps_directory"]
+            cls.STORAGE_FILENAME = config["storage_filename"]
+            cls.LOCAL_CONFIG_FILENAME = config["local_config_filename"]
+            cls.TILEMAP_FILENAME = config["tilemap_filename"]
+            cls.TEXTURE_DIRECTORY = config["texture_directory"]
+            cls.BASIS_VECTORS = config["basis_vectors"]
 
-    INCIRCLE_RADIUS = 100
-    TERRAINS = {
-        "arctic": "textures\\arctic.png",
-        "desert": "textures\\desert.png",
-        "forest": "textures\\forest.png",
-        "hills": "textures\\hills.png",
-        "lake": "textures\\lake.png",
-        "mountains": "textures\\mountains.png",
-        "ocean": "textures\\ocean.png",
-        "plains": "textures\\plains.png",
-        "swamp": "textures\\swamp.png",
-    }
-    UNEXPLORED_IMAGE_PATH = "textures\\unexplored.png"
-    #with open(local_path, "r") as local_config:
-    #    LOCAL_SETTINGS: dict = json.load(local_config)
-    #    TERRAINS: dict = LOCAL_SETTINGS["terrains"]
-    #    INCIRCLE_RADIUS: int = LOCAL_SETTINGS["incircle_radius"]
-    return
+    @classmethod
+    def load_local_settings(cls, local_path: str):
+        with open(local_path, "r") as local_config:
+            # convert json to dict
+            config: dict = json.load(local_config)
+            # extract config
+            cls.INCIRCLE_RADIUS = config["incircle_radius"]
+            cls.UNEXPLORED_IMAGE_PATH = config["unexplored_image"]
+            cls.UNEXPLORED_ADJACENCIES = config["unexplored_adjacencies"]
+            cls.TERRAINS = config["terrains"]

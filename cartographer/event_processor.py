@@ -1,12 +1,8 @@
 # camiregu
 # 2023-mar-28
-import cartographer.tile_manager as tm
-import cartographer.display_controller as dc
-import cartographer.map_painter as mp
-import cartographer.terrain_generator as tg
-
+from cartographer.tile_manager import TileManager
+from cartographer.display_controller import DisplayController
 import pygame as pg
-import numpy as np
 
 # functions
 def process_user_input() -> bool:
@@ -20,36 +16,31 @@ def process_user_input() -> bool:
                 return True
             
             if event.key == pg.K_f:
-                dc.toggle_fullscreen()
-                dc.draw_screen()
+                DisplayController.toggle_fullscreen()
+                DisplayController.draw_screen()
             
         elif event.type == pg.MOUSEBUTTONDOWN:
             # convert mouse position to its equivalent position on the draw_screen
-            relative_pos = (pg.mouse.get_pos() - dc.get_blit_position()) * (dc.draw_surface.get_height() // dc.display_surface.get_height()) // dc.scale
+            relative_pos = (pg.mouse.get_pos() - DisplayController.get_blit_position()) * (DisplayController.draw_surface.get_height() // DisplayController.display_surface.get_height()) // DisplayController.scale
+            hovered_tile = TileManager.find_tile_at(relative_pos)
 
             if event.button == 1:
-                for tile in tm.unexplored:
-                    if tile.mouse_is_over(relative_pos):
-                        terrain = tg.assign_terrain(tile.coordinates)
-                        tile.update_terrain(terrain)
-                        tile.set_explored(True) 
-                        mp.update_tile(tile)
-                        dc.draw_screen()
+                if hovered_tile and hovered_tile in TileManager.unexplored:
+                    TileManager.randomize_terrain(hovered_tile)
+                    DisplayController.draw_screen()
 
             if event.button == 3:
-                for tile in tm.explored:
-                    if tile.mouse_is_over(relative_pos):
-                        tile.reset()
-                        mp.update_tile(tile)
-                        dc.draw_screen()
+                if hovered_tile and hovered_tile in TileManager.explored:
+                    TileManager.destroy_tile(hovered_tile)
+                    DisplayController.draw_screen()
 
         elif event.type == pg.MOUSEWHEEL:
-            dc.scale_display(event.y)
-            dc.draw_screen()
+            DisplayController.scale_display(event.y)
+            DisplayController.draw_screen()
 
         elif event.type == pg.MOUSEMOTION:
             if event.buttons[1]:
-                dc.pan_display(event.rel)
-                dc.draw_screen()
+                DisplayController.pan_display(event.rel)
+                DisplayController.draw_screen()
     
     return False

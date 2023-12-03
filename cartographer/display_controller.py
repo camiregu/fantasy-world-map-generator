@@ -3,72 +3,87 @@
 import numpy as np
 import pygame as pg
 
-
-# functions
-def start_display():
-    global max_display, default_display, scale, fullscreen, draw_surface, scale_surface, display_surface, zoom_offset, pan_offset
-
-    pg.init()   
-    max_display = np.array((pg.display.Info().current_w, pg.display.Info().current_h))
-    default_display = max_display / 2
-    fullscreen = False
-
-    draw_surface = pg.Surface(max_display * 10)
-    scale_surface = pg.Surface(default_display)
-    display_surface = pg.display.set_mode(default_display)
-
-    scale = 1
-    zoom_offset = np.array((0.0, 0.0))
-    pan_offset = np.array((0.0, 0.0))
-    return
+class DisplayController():
+    """Singleton class keeps track of pan and zoom and displays accordingly."""
+    max_display: 'tuple[int, int]'
+    default_display: 'tuple[int, int]'
+    scale: int
+    fullscreen: bool
+    draw_surface: pg.Surface
+    scale_surface: pg.Surface
+    display_surface: pg.Surface
+    zoom_offset: 'tuple[float, float]'
+    pan_offset: 'tuple[float, float]'
 
 
-def draw_screen():
-    pg.transform.scale(draw_surface, get_resolution(), scale_surface)
-    display_surface.blit(scale_surface, get_blit_position())
-    pg.display.flip()
-    return
+    @classmethod
+    def start(cls):
+        """Initialize pygame, set surfaces, and default values for pan/zoom/fullscreen."""
+        pg.init()   
+        cls.max_display = np.array((pg.display.Info().current_w, pg.display.Info().current_h))
+        cls.default_display = cls.max_display / 2
+        cls.fullscreen = False
+
+        cls.draw_surface = pg.Surface(cls.max_display * 10)
+        cls.scale_surface = pg.Surface(cls.default_display)
+        cls.display_surface = pg.display.set_mode(cls.default_display)
+
+        cls.scale = 1
+        cls.zoom_offset = np.array((0.0, 0.0))
+        cls.pan_offset = np.array((0.0, 0.0))
 
 
-def toggle_fullscreen():
-    global fullscreen
-    fullscreen = not fullscreen
-    set_display()
-    return
+    @classmethod
+    def draw_screen(cls):
+        """Translate and draw game board to screen."""
+        pg.transform.scale(cls.draw_surface, cls.get_resolution(), cls.scale_surface)
+        cls.display_surface.blit(cls.scale_surface, cls.get_blit_position())
+        pg.display.flip()
 
 
-def scale_display(increment: int):
-    global scale, zoom_offset
-    increment = increment / abs(increment) # normalize increment for easier math
-    new_scale = scale * (2**increment) # half or double scale
-    if new_scale <= 16:
-        scale = new_scale    
-        scale_pos = np.array(pg.mouse.get_pos()) 
-        zoom_offset = zoom_offset - increment * (2/(3-increment)) * (scale_pos-zoom_offset) # zooms while keeping the position under the cursor constant
-    set_display()
+    @classmethod
+    def toggle_fullscreen(cls):
+        """Toggle fullscreen."""
+        cls.fullscreen = not cls.fullscreen
+        cls.set_display()
 
 
-def pan_display(motion: tuple[int, int]):
-    global pan_offset
-    pan_offset += np.array(motion) / scale
+    @classmethod
+    def scale_display(cls, increment: int):
+        """Multiply display scale by 2^increment"""
+        if increment != 0:
+            increment = increment / abs(increment) # normalize increment for easier math
+            new_scale = cls.scale * (2**increment) # half or double scale
+            if new_scale <= 16:
+                cls.scale = new_scale    
+                scale_pos = np.array(pg.mouse.get_pos()) 
+                cls.zoom_offset = cls.zoom_offset - increment * (2/(3-increment)) * (scale_pos-cls.zoom_offset) # zooms while keeping the position under the cursor constant
+            cls.set_display()
 
 
-def set_display():
-    global display_surface, scale_surface, draw_surface
-    scale_surface = pg.Surface(get_resolution())
-    if fullscreen:
-        display_surface = pg.display.set_mode(max_display, pg.FULLSCREEN)
-    else:
-        display_surface = pg.display.set_mode(default_display)
-    return
+    @classmethod
+    def pan_display(cls, motion: tuple[int, int]):
+        """Pan display by motion."""
+        cls.pan_offset += np.array(motion) / cls.scale
 
 
-def get_resolution():
-    if fullscreen:
-        return max_display * scale
-    else:
-        return default_display * scale
+    @classmethod
+    def set_display(cls):
+        cls.scale_surface = pg.Surface(cls.get_resolution())
+        if cls.fullscreen:
+            cls.display_surface = pg.display.set_mode(cls.max_display, pg.FULLSCREEN)
+        else:
+            cls.display_surface = pg.display.set_mode(cls.default_display)
 
 
-def get_blit_position():
-    return zoom_offset + scale * pan_offset
+    @classmethod
+    def get_resolution(cls):
+        if cls.fullscreen:
+            return cls.max_display * cls.scale
+        else:
+            return cls.default_display * cls.scale
+
+
+    @classmethod
+    def get_blit_position(cls):
+        return cls.zoom_offset + cls.scale * cls.pan_offset
