@@ -1,8 +1,8 @@
 # camiregu
 # 2023-mar-22
 from config import Config
-import json
 import os
+import json
 import shutil
 
 # functions
@@ -27,11 +27,21 @@ def delete_map(map: str) -> None:
     pass
 
 
-def edit_map(map: str, settings: dict) -> None:
+def edit_map(map_name: str, new_settings: dict) -> None:
     """Edit map directory name and config file."""
-    #change folder name
-    #update local config
-    pass
+    map_path = get_path(map_name)
+    
+    with open(map_path, "r") as local_config:
+        config: dict = json.load(local_config)
+
+    config.update(new_settings)
+
+    with open(map_path,"w") as local_config:
+        json.dump(config, local_config)
+
+
+def get_path(map_name: str) -> str:
+    return os.path.join(Config.MAPS_DIRECTORY, map_name, Config.LOCAL_CONFIG_FILENAME)
 
 
 def remove_illegal_chars(string: str) -> str:

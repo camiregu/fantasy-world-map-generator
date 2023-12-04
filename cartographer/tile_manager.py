@@ -24,7 +24,7 @@ class TileManager():
 
     @classmethod
     def start(cls, surface: pg.Surface):
-        """Reset all class variables."""
+        """Reset all class variables and set surface to draw to."""
         cls.unexplored = pg.sprite.Group()    
         cls.explored = pg.sprite.Group()
         cls.tiles = {}
@@ -39,12 +39,15 @@ class TileManager():
             np.array((1,0)) * (2/np.sqrt(3)) * Config.INCIRCLE_RADIUS
         )
 
+        cls.load_tilemap()
+
 
     @classmethod
-    def load(cls, tilemap: dict):
+    def load_tilemap(cls):
         """Load a set of tiles onto the board."""
         cls.loading = True
-        for coordinates, terrain in tilemap.items():
+        for coordinate_string, terrain in Config.TILEMAP.items():
+            coordinates = tuple(map(int, coordinate_string.split(', ')))
             if coordinates in cls.tiles:
                 tile = cls.tiles[coordinates]
             else:
@@ -56,14 +59,14 @@ class TileManager():
 
 
     @classmethod
-    def save(cls) -> dict:
+    def save_tilemap(cls) -> dict:
         """Create a dict object containing explored tile data."""
         tilemap = {}
         for tile in cls.tiles.values():
             if cls.explored in tile.groups():
-                tilemap.update({tile.coordinates: tile.terrain})
+                tilemap.update({str(tile.coordinates)[1:-1]: tile.terrain})
         return tilemap
-    
+
 
     @classmethod
     def create_tile(cls, coordinates: tuple[int, int, int]) -> Tile:

@@ -3,10 +3,13 @@
 from config import Config
 from map_launcher.start_menu import start_menu
 from cartographer.map_manager import open_map
+import file_manager
 
 Config.load_global_settings()
 
 # main
 while True:
-    path = start_menu()
-    open_map(path)
+    map = start_menu()
+    Config.load_local_settings(map)
+    tilemap = open_map()
+    file_manager.edit_map(map, {"tilemap": tilemap})

@@ -1,6 +1,6 @@
 # camiregu
 # 2023-apr-08
-import map_launcher.file_manager as file_manager
+import file_manager
 import map_launcher.settings_menu as settings
 
 import tkinter as tk
