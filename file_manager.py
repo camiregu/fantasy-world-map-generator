@@ -8,9 +8,7 @@ import shutil
 # functions
 def get_map_names() -> list[str]:
     """Return a list of all map names.""" #TODO remove the need for maps.json
-    with open(Config.STORAGE_FILENAME, "r") as storage:
-        map_list = json.load(storage)['maps']
-    return map_list
+    return os.listdir(Config.MAPS_DIRECTORY)
 
 
 def create_map_files():
@@ -20,28 +18,38 @@ def create_map_files():
     pass
 
 
-def delete_map(map: str) -> None:
-    """Delete map folder and children, and remove it from the map list."""
-    #delete folder and children
-    #remove world from maps.json
-    pass
+def delete_map(map_name: str) -> None:
+    """Delete map directory and children."""
+    map_path = os.path.join(Config.MAPS_DIRECTORY, map_name)
+    shutil.rmtree(map_path)
 
 
 def edit_map(map_name: str, new_settings: dict) -> None:
     """Edit map directory name and config file."""
-    map_path = get_path(map_name)
+    config_path = os.path.join(Config.MAPS_DIRECTORY, map_name, Config.LOCAL_CONFIG_FILENAME)
     
-    with open(map_path, "r") as local_config:
+    with open(config_path, "r") as local_config:
         config: dict = json.load(local_config)
 
     config.update(new_settings)
 
-    with open(map_path,"w") as local_config:
+    with open(config_path,"w") as local_config:
         json.dump(config, local_config)
 
 
-def get_path(map_name: str) -> str:
-    return os.path.join(Config.MAPS_DIRECTORY, map_name, Config.LOCAL_CONFIG_FILENAME)
+def duplicate_map(map_name: str) -> None:
+    """Create a new copy of selected map, with a different name."""
+    config_path = os.path.join(Config.MAPS_DIRECTORY, map_name, Config.LOCAL_CONFIG_FILENAME)
+
+    i, new_map_name = 1, map_name + ' (1)'
+    while new_map_name in get_map_names():
+        i += 1
+        new_map_name = map_name + f' ({i})'
+
+    new_map_path = os.path.join(Config.MAPS_DIRECTORY, new_map_name)
+    os.makedirs(new_map_path)
+    shutil.copy(config_path, new_map_path)
+
 
 
 def remove_illegal_chars(string: str) -> str:

@@ -1,6 +1,5 @@
 {
     "maps_directory": "maps",
-    "storage_filename": "maps.json",
     "local_config_filename": "config.json",
     "tilemap_filename": "tilemap.json",
     "texture_directory": "textures",

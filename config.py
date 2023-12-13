@@ -6,7 +6,6 @@ import json
 class Config():
     """Holds configuration settings for various files."""
     MAPS_DIRECTORY: str
-    STORAGE_FILENAME: str
     LOCAL_CONFIG_FILENAME: str
     TEXTURE_DIRECTORY: str
     BASIS_VECTORS: list[list[int]]
@@ -25,7 +24,6 @@ class Config():
             config: dict = json.load(global_config)
             # extract config
             cls.MAPS_DIRECTORY = config["maps_directory"]
-            cls.STORAGE_FILENAME = config["storage_filename"]
             cls.LOCAL_CONFIG_FILENAME = config["local_config_filename"]
             cls.TILEMAP_FILENAME = config["tilemap_filename"]
             cls.TEXTURE_DIRECTORY = config["texture_directory"]

@@ -6,83 +6,127 @@ import map_launcher.settings_menu as settings
 import tkinter as tk
 from tkinter import ttk
 
-# functions
-def start_menu():
-    map_list = file_manager.get_map_names()
+class StartMenu(tk.Tk):
+    def __init__(self) -> str:
+        super().__init__()
+        self.title('Map Selection')
+        self.minsize(500, 300) # CONFIG
+        self.frame_padding = 20 # CONFIG
 
-    window = tk.Tk()
-    window.title('Map Selection')
-    window.minsize(500,300)
-    window.columnconfigure(0,weight=1)
-    window.rowconfigure(0,weight=5)
-    window.rowconfigure(1,weight=1)
+        table_weights = {"columns": {0:1},
+                        "rows": {0:5, 1:1}}
+        configure_frame_table(self, table_weights)
 
-    tree_frame = ttk.Frame(window, padding=20)
-    button_frame = ttk.Frame(window, padding=20)
+        self.map_selector = MapSelector(self, padding=self.frame_padding)
+        self.map_selector.grid(row=0, sticky='nesw')
+
+        self.toolbar = Toolbar(self, padding=self.frame_padding)
+        self.toolbar.grid(row=1, sticky='nesw')
+
+
+    def refresh_map_list(self):
+        self.map_selector.destroy()
+        self.map_selector = MapSelector(self, padding=self.frame_padding)
+        self.map_selector.grid(row=0, sticky='nesw')
+        self.toolbar.set_button_state(False)
+
+
+    def get_selection(self) -> str:
+        return self.map_selector.tree.selection()[0]
     
-    tree_frame.grid(row=0, sticky=('n','e','s','w'))
-    tree_frame.columnconfigure(0, weight=1)
-    tree_frame.rowconfigure(1, weight=1)
-    button_frame.grid(row=1, sticky=('n','e','s','w'))
-    button_frame.columnconfigure(0, weight=1)
-    button_frame.columnconfigure(1, weight=1, pad=10)
-    button_frame.columnconfigure(2, weight=1)
-    button_frame.rowconfigure(0, weight=1)
-    button_frame.rowconfigure(1, weight=1)
 
-    tree_label = ttk.Label(tree_frame, text='Map List')
-    tree_label.grid(row=0, column=0)
-    tree_view = ttk.Treeview(tree_frame, columns=[], displaycolumns='#all', height=5, selectmode='browse', show=['tree'])
-    tree_scrollbar = ttk.Scrollbar(tree_frame, orient='vertical', command=tree_view.yview)
-    tree_scrollbar.grid(row=1, column=1, sticky=('n','s'))
-    tree_view.configure(yscrollcommand=tree_scrollbar.set)
-    tree_view.grid(row=1, column=0, sticky=('n','e','s','w'))
-
-    load_button = ttk.Button(button_frame, text='Load Selected Map', command=window.quit, state='disabled')
-    create_button = ttk.Button(button_frame, text='Create New Map', command=create) 
-    edit_button = ttk.Button(button_frame, text='Edit', command=lambda: edit(tree_view.selection()[0]), state='disabled')
-    delete_button = ttk.Button(button_frame, text='Delete', command=lambda: delete(tree_view.selection()[0]), state='disabled')
-    duplicate_button = ttk.Button(button_frame, text='Duplicate Map', command=lambda: duplicate(tree_view.selection()[0]), state='disabled')
-    
-    load_button.grid(column=0, row=0, columnspan=2, sticky=('n','e','s','w'))
-    create_button.grid(column=2, row=0, columnspan=2, sticky=('n','e','s','w'))
-    edit_button.grid(column=0, row=1, sticky=('n','e','s','w'))
-    delete_button.grid(column=1, row=1, sticky=('n','e','s','w'))
-    duplicate_button.grid(column=2, row=1, columnspan=2, sticky=('n','e','s','w'))
-
-    for index, world in enumerate(map_list):
-        tree_view.insert('', index, iid=world, text=world)
-
-    window.bind('<<TreeviewSelect>>', lambda _: activate_buttons([load_button, edit_button, delete_button, duplicate_button]))
-    window.bind('<Return>', lambda _: load_button.invoke())
-
-    window.mainloop()
-    
-    try:
-        selected_world = tree_view.selection()[0]
-        window.destroy()
-        return selected_world
-    except:
-        quit()
+    def select(self) -> str:
+        self.mainloop()
+        try:
+            selection = self.get_selection()
+            self.destroy()
+            return selection
+        except:
+            quit()
 
 
-def activate_buttons(buttons: list[ttk.Button]):
-    for button in buttons:
-        button.configure(state='!disabled')
+class MapSelector(ttk.Frame):
+    def __init__(self, master: tk.Tk, padding: int):
+        super().__init__(master, padding=padding)
+
+        table_weights = {"columns": {0:1},
+                        "rows": {1:1}}
+        configure_frame_table(self, table_weights)
+
+        title = ttk.Label(self, text='Map List')
+        title.grid(row=0, column=0)
+
+        self.tree = ttk.Treeview(self, columns=[], displaycolumns='#all', height=5, selectmode='browse', show=['tree'])
+        self.tree.grid(row=1, column=0, sticky='nesw')
+
+        for row, map in enumerate(file_manager.get_map_names()):
+            self.tree.insert('', row, iid=map, text=map)
+
+        scrollbar = ttk.Scrollbar(self, orient='vertical', command=self.tree.yview)
+        scrollbar.grid(row=1, column=1, sticky='ns')
+
+        self.tree.configure(yscrollcommand=scrollbar.set)
+        
+
+class Toolbar(ttk.Frame):
+    def __init__(self, master: StartMenu, padding: int):
+        super().__init__(master, padding=padding)
+
+        table_weights = {"columns": {0:1, 1:1, 2:1},
+                        "rows": {0:1, 1:1}}
+        configure_frame_table(self, table_weights)
+
+        load_button = ttk.Button(self, text='Load Selected Map', command=self.master.quit, state='disabled')
+        load_button.grid(column=0, row=0, columnspan=2, sticky='nesw')
+
+        create_button = ttk.Button(self, text='Create New Map', command=self.create, state='disabled') 
+        create_button.grid(column=2, row=0, columnspan=2, sticky='nesw')
+
+        edit_button = ttk.Button(self, text='Edit', command=lambda: self.edit(self.master.get_selection()), state='disabled')
+        edit_button.grid(column=0, row=1, sticky='nesw')
+
+        delete_button = ttk.Button(self, text='Delete', command=lambda: self.delete(self.master.get_selection()), state='disabled')
+        delete_button.grid(column=1, row=1, sticky='nesw')
+
+        duplicate_button = ttk.Button(self, text='Duplicate Map', command=lambda: self.duplicate(self.master.get_selection()), state='disabled')
+        duplicate_button.grid(column=2, row=1, columnspan=2, sticky='nesw')
+
+        self.toggleable_buttons = [load_button, delete_button, duplicate_button]
+        master.bind('<<TreeviewSelect>>', lambda _: self.set_button_state(True))
+        master.bind('<Return>', lambda _: load_button.invoke())
+        
+
+    def set_button_state(self, active: bool):
+        state = 'disabled'
+        if active:
+            state = '!' + state
+
+        for button in self.toggleable_buttons:
+            button.configure(state=state)
 
 
-def create():
-    print(f'create new world!')
-    #settings = settings.open()
+    def create(self):
+        print(f'create new map!') #TODO
+        #settings = settings.open()
 
 
-def edit(world: str):
-    print(f'edit {world}') #TODO
+    def edit(self, map_name: str):
+        print(f'edit {map_name}') #TODO
 
 
-def delete(world: str):
-    print(f'delete {world}') #TODO
+    def delete(self, map_name: str): # TODO add an 'are you sure?'
+        file_manager.delete_map(map_name)
+        self.master.refresh_map_list()
 
 
-def duplicate(world: str):
-    print(f'duplicate {world}') #TODO
+    def duplicate(self, map_name: str):
+        file_manager.duplicate_map(map_name)
+        self.master.refresh_map_list()
+
+
+def configure_frame_table(frame, weights: dict[str, dict]):
+    columns, rows = weights.values()
+    for column, weight in columns.items():
+        frame.columnconfigure(column, weight=weight)
+    for row, weight in rows.items():
+        frame.rowconfigure(row, weight=weight)
